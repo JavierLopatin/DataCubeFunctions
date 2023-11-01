@@ -1,6 +1,8 @@
 from datacube.utils import masking
 import xarray as xr
 import rasterio
+import rasterio.features
+
 
 def Sentinel2_cloudMask(ds, valid_threshold=0.7):
     """
@@ -54,9 +56,6 @@ def get_noneNaN_dates(img, dims=('x', 'y')):
     # Get the indices of 'time' dimension where there are no NaN values
     return non_nan_mask.where(non_nan_mask).dropna(dim='time')['time'].values
 
-import numpy as np
-import xarray as xr
-import rasterio.features
 
 def rasterize_xarray(data_array: xr.DataArray, shapefile: gpd.GeoDataFrame, column: str) -> xr.DataArray:
     """
