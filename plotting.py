@@ -52,6 +52,18 @@ def plot_classes(class_map, n_clusters, col=None):
     
     
 def interactive_RGB_Plot(image):
+    """
+    This function creates an interactive RGB plot for the given image.
+    The user can select the red, green, and blue bands to be plotted using dropdown menus.
+    The plot is displayed when the user clicks the "Plot" button.
+
+    Parameters:
+    image (xarray.Dataset): The image to be plotted.
+
+    Returns:
+    None
+    """
+
     band_options = list(image.data_vars.keys())
 
     r_band_selector = widgets.Dropdown(options=band_options, description="Red Band:")

@@ -1,5 +1,6 @@
 from datacube.utils import masking
 import xarray as xr
+import rasterio
 
 def Sentinel2_cloudMask(ds, valid_threshold=0.7):
     """
@@ -52,3 +53,53 @@ def get_noneNaN_dates(img, dims=('x', 'y')):
     non_nan_mask = img.notnull().all(dim=tuple(set(img.dims) - {'time'} - set(dims)))
     # Get the indices of 'time' dimension where there are no NaN values
     return non_nan_mask.where(non_nan_mask).dropna(dim='time')['time'].values
+
+import numpy as np
+import xarray as xr
+import rasterio.features
+
+def rasterize_xarray(data_array: xr.DataArray, shapefile: gpd.GeoDataFrame, column: str) -> xr.DataArray:
+    """
+    Rasterizes a GeoDataFrame into an xarray DataArray using the same coordinates as the chosen DataArray.
+
+    Parameters:
+    -----------
+    data_array : xr.DataArray
+        The DataArray to use for the coordinates and dimensions of the output raster.
+    shapefile : gpd.GeoDataFrame
+        The GeoDataFrame to be rasterized.
+    column : str
+        The name of the column in the GeoDataFrame to use for the values of the raster.
+
+    Returns:
+    --------
+    xr.DataArray
+        The rasterized GeoDataFrame as an xarray DataArray.
+    """
+    # Convert the specified column of the GeoDataFrame to a list of shapes
+    shapes = [(geom, value) for geom, value in zip(shapefile.geometry, shapefile[column])]
+
+    # Rasterize the shapes using the same coordinates as the chosen DataArray
+    code2_raster = rasterio.features.rasterize(shapes, out_shape=data_array.shape, transform=data_array.rio.transform(), fill=np.nan)
+
+    # Convert the raster to an xarray DataArray
+    return xr.DataArray(code2_raster, coords=data_array.coords, dims=data_array.dims)
+
+# Convert the xarray Dataset 2D
+def xr_dataVar_2flat(ds):
+    """
+    Stack the x and y dimensions of a xarray dataset and convert it to a 2D numpy array.
+    
+    Parameters:
+    -----------
+    ds : xarray.Dataset
+        The input dataset to be flattened.
+    
+    Returns:
+    --------
+    img_flat : xarray.DataArray
+        The flattened dataset as a 2D numpy array.
+    """
+    img_flat = ds.stack(z=('y','x'))
+    img_flat = img_flat.to_array(dim='variable')
+    return img_flat.transpose("z", "variable")
