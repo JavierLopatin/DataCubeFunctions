@@ -35,3 +35,15 @@ def Sentinel2_calculate_indices(img):
     img['kndvi'] = (1-knr) / (1+knr)
 
     return img
+
+def Sentinel2_TasseledCap(img):
+    """
+    Calculate brightness, greenness, and wetness from an xarray object.
+    img: xarray object
+        img needs to have data variables called B02, B03, B04, B08, B11, and B12.
+    """
+    img['Brightness'] = 0.3510*img['B02'] + 0.3813*img['B03'] + 0.3437*img['B04'] + 0.7196*img['B08'] + 0.2396*img['B11'] + 0.1949*img['B12']
+    img['Greeness'] = -0.3599*img['B02'] - 0.3533*img['B03'] - 0.4734*img['B04'] + 0.6633*img['B08'] + 0.0087*img['B11'] - 0.2856*img['B12']
+    img['Wetness'] = 0.2578*img['B02'] + 0.2305*img['B03'] + 0.0883*img['B04'] + 0.1071*img['B08'] - 0.7611*img['B11'] - 0.5308*img['B12']
+
+    return img

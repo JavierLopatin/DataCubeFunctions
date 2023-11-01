@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib_scalebar.scalebar import ScaleBar
 from matplotlib import colors
+import ipywidgets as widgets
+from IPython.display import display
+
 
 def plot_classes(class_map, n_clusters, col=None):
     """
@@ -45,7 +48,33 @@ def plot_classes(class_map, n_clusters, col=None):
     # Add scale bar to the bottom left
     scalebar = ScaleBar(1, location=3)
     ax.add_artist(scalebar)
+    
+    
+    
+def interactive_RGB_Plot(image):
+    band_options = list(image.data_vars.keys())
 
+    r_band_selector = widgets.Dropdown(options=band_options, description="Red Band:")
+    g_band_selector = widgets.Dropdown(options=band_options, description="Green Band:")
+    b_band_selector = widgets.Dropdown(options=band_options, description="Blue Band:")
+
+    # Setting default values
+    if len(band_options) >= 3:
+        r_band_selector.value = band_options[0]
+        g_band_selector.value = band_options[1]
+        b_band_selector.value = band_options[2]
+
+    plot_button = widgets.Button(description="Plot")
+
+    def visualize_image(button):
+        plt.figure()
+        image[[r_band_selector.value, g_band_selector.value, b_band_selector.value]].to_array().plot.imshow(robust=True)
+        plt.title(f'RGB: {r_band_selector.value}, {g_band_selector.value}, {b_band_selector.value}')
+        plt.show()
+
+    plot_button.on_click(visualize_image)
+
+    display(r_band_selector, g_band_selector, b_band_selector, plot_button)
 
 def plot_normRGB(img, vmax=0.6):
     # normalizar entre 0 y 1
