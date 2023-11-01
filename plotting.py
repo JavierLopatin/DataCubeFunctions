@@ -45,3 +45,9 @@ def plot_classes(class_map, n_clusters, col=None):
     # Add scale bar to the bottom left
     scalebar = ScaleBar(1, location=3)
     ax.add_artist(scalebar)
+
+
+def plot_normRGB(img, vmax=0.6):
+    # normalizar entre 0 y 1
+    img = (img - img.min()) / (img.max() - img.min())
+    img.to_array().plot.imshow(robust=True, vmax=vmax)
