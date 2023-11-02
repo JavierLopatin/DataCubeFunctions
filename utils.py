@@ -102,3 +102,32 @@ def xr_dataVar_2flat(ds):
     img_flat = ds.stack(z=('y','x'))
     img_flat = img_flat.to_array(dim='variable')
     return img_flat.transpose("z", "variable")
+
+
+def collapse_dim_to_variable(ds, dim):
+    """
+    Collapse a dimension of an xarray Dataset into data variables.
+    All variables are repeted and stored i Data Variables acording to the values of the dimension.
+    For example, if the dimension is 'time' and the Dataset has 3 variables, the output will have 3*len(ds['time']) variables.
+
+    ds: xarray Dataset
+    dim: string
+        The name of the dimension to collapse.
+    """
+    # Create a dictionary to hold the new data variables
+    new_data_vars = {}
+
+    # Loop over each data variable in the original Dataset
+    for var in ds.data_vars:
+        # Loop over each value of the specified dimension
+        for value in ds[dim]:
+            # Create a new data variable for each value of the specified dimension
+            new_var_name = f'{dim}{int(value.values*100)}_{var}'
+            new_data_vars[new_var_name] = ds[var].sel({dim: value}).drop(dim)
+
+    # Create a new xarray Dataset with the new data variables
+    new_ds = xr.Dataset(new_data_vars)
+    crs= ds.rio.crs
+    new_ds.rio.write_crs(crs, inplace=True)
+    
+    return new_ds

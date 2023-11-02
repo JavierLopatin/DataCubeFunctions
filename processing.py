@@ -1,3 +1,4 @@
+import rasterio
 import xarray as xr
 import numpy as np
 
@@ -47,3 +48,30 @@ def Sentinel2_TasseledCap(img):
     img['Wetness'] = 0.2578*img['B02'] + 0.2305*img['B03'] + 0.0883*img['B04'] + 0.1071*img['B08'] - 0.7611*img['B11'] - 0.5308*img['B12']
 
     return img
+
+def rasterize_xarray(data_array: xr.DataArray, shapefile: gpd.GeoDataFrame, column: str) -> xr.DataArray:
+    """
+    Rasterizes a GeoDataFrame into an xarray DataArray using the same coordinates as the chosen DataArray.
+
+    Parameters:
+    -----------
+    data_array : xr.DataArray
+        The DataArray to use for the coordinates and dimensions of the output raster.
+    shapefile : gpd.GeoDataFrame
+        The GeoDataFrame to be rasterized.
+    column : str
+        The name of the column in the GeoDataFrame to use for the values of the raster.
+
+    Returns:
+    --------
+    xr.DataArray
+        The rasterized GeoDataFrame as an xarray DataArray.
+    """
+    # Convert the specified column of the GeoDataFrame to a list of shapes
+    shapes = [(geom, value) for geom, value in zip(shapefile.geometry, shapefile[column])]
+
+    # Rasterize the shapes using the same coordinates as the chosen DataArray
+    code2_raster = rasterio.features.rasterize(shapes, out_shape=data_array.shape, transform=data_array.rio.transform(), fill=np.nan)
+
+    # Convert the raster to an xarray DataArray
+    return xr.DataArray(code2_raster, coords=data_array.coords, dims=data_array.dims)
